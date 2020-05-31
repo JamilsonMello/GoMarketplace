@@ -37,12 +37,7 @@ const Dashboard: React.FC = () => {
     async function loadProducts(): Promise<void> {
       const response = await api.get('/products');
 
-      const newProducts = response.data.map((p: Product) => ({
-        ...p,
-        quantity: 0,
-      }));
-
-      setProducts(newProducts);
+      setProducts(response.data);
     }
 
     loadProducts();

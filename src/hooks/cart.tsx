@@ -30,23 +30,58 @@ const CartProvider: React.FC = ({ children }) => {
 
   useEffect(() => {
     async function loadProducts(): Promise<void> {
-      // TODO LOAD ITEMS FROM ASYNC STORAGE
-    }
+      const productsLoad = await AsyncStorage.getItem('@GoMarketplace');
 
+      if (productsLoad) {
+        setProducts(JSON.parse(productsLoad));
+      }
+    }
     loadProducts();
   }, []);
 
-  const addToCart = useCallback(async product => {
-    // TODO ADD A NEW ITEM TO THE CART
-  }, []);
+  const increment = useCallback(
+    async id => {
+      const copyProducts: Product[] = products;
+      const indexProduct = products.findIndex(p => p.id === id);
 
-  const increment = useCallback(async id => {
-    // TODO INCREMENTS A PRODUCT QUANTITY IN THE CART
-  }, []);
+      if (indexProduct >= 0) {
+        copyProducts[indexProduct].quantity += 1;
+        setProducts([...copyProducts]);
+      }
+      await AsyncStorage.setItem('@GoMarketplace', JSON.stringify(products));
+    },
+    [products],
+  );
 
-  const decrement = useCallback(async id => {
-    // TODO DECREMENTS A PRODUCT QUANTITY IN THE CART
-  }, []);
+  const decrement = useCallback(
+    async id => {
+      const copyProducts: Product[] = products;
+      const indexProduct = products.findIndex(p => p.id === id);
+
+      if (products[indexProduct].quantity <= 0) return;
+
+      if (indexProduct >= 0) {
+        copyProducts[indexProduct].quantity -= 1;
+        setProducts([...copyProducts]);
+      }
+      await AsyncStorage.setItem('@GoMarketplace', JSON.stringify(products));
+    },
+    [products],
+  );
+
+  const addToCart = useCallback(
+    async product => {
+      const indexProduct = products.findIndex(p => p.id === product.id);
+
+      if (indexProduct >= 0) {
+        increment(product.id);
+      } else {
+        setProducts([...products, { ...product, quantity: 1 }]);
+      }
+      await AsyncStorage.setItem('@GoMarketplace', JSON.stringify(products));
+    },
+    [products, increment],
+  );
 
   const value = React.useMemo(
     () => ({ addToCart, increment, decrement, products }),
